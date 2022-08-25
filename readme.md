@@ -56,6 +56,40 @@ mnist_estimator.deploy(
 
 ```
 
+test the endpoint, create the predictor
+
+```py
+predictor = MXNetPredictor(
+    sagemaker_session=Session(),
+    endpoint_name=config["endpoint-1"]
+)
+```
+
+load a local image
+
+```py
+def load_image_from_file(filename):
+    """
+    use open cv to read image
+    """
+    image = mx.image.imread(filename, 0)
+    image = mx.image.imresize(image, 28, 28)
+    image = image.transpose((2, 0, 1))
+    image = image.astype(dtype="float32")
+    return image
+```
+
+and test it
+
+```py
+data = load_image_from_file("data/image-2.png")
+data = data.asnumpy()
+response = predictor.predict(data=data)
+response = list(zip(range(10), response[0]))
+response.sort(key=lambda x: 1.0 - x[1])
+print(response)
+```
+
 ## Reference
 
 - [amazon sagemaker example](https://github.com/aws/amazon-sagemaker-examples/blob/main/sagemaker-python-sdk/mxnet_mnist/mnist.py)

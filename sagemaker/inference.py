@@ -1,17 +1,27 @@
-import numpy as np
+"""
+haimtran
+use inference.py as entry_point when create your own model
+with aws managed container
+"""
 import json
-import mxnet as mx
 from collections import namedtuple
+import numpy as np
+import mxnet as mx
+
+# pylint: disable=invalid-name
 
 Batch = namedtuple("Batch", ["data"])
 
 # Change the context to mx.cpu() if deploying to a CPU endpoint
 ctx = mx.gpu()
 
+train_data_location = "s3://"
 
 def model_fn(model_dir):
     # The compiled model artifacts are saved with the prefix 'compiled'
-    sym, arg_params, aux_params = mx.model.load_checkpoint("compiled", 0)
+    sym, arg_params, aux_params = mx.model.load_checkpoint(
+        "compiled", 0
+    )
     mod = mx.mod.Module(symbol=sym, context=ctx, label_names=None)
     exe = mod.bind(
         for_training=False,

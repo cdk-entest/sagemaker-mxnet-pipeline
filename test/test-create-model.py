@@ -1,6 +1,9 @@
 import json
 import boto3
 
+def add(a, b):
+    return a+b
+
 client = boto3.client("sagemaker", region_name="us-east-1")
 
 with open("./../config.json", "r", encoding="utf-8") as file:
@@ -19,6 +22,12 @@ resp = client.create_model(
         "Image": config["ECR_IMG_URL"],
         "Mode": "SingleModel",
         "ModelDataUrl": config["MODEL_PATH"],
+        "Environment": {
+            "SAGEMAKER_CONTAINER_LOG_LEVEL": "20",
+            "SAGEMAKER_PROGRAM": "mnist.py",
+            "SAGEMAKER_REGION": "us-east-1",
+            "SAGEMAKER_SUBMIT_DIRECTORY": "/opt/ml/model/code",
+        },
     },
     ExecutionRoleArn=config["ROLE"],
 )

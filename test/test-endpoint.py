@@ -1,7 +1,7 @@
+import json
 import mxnet as mx
 from sagemaker.mxnet import MXNetPredictor
 from sagemaker.session import Session
-import json
 
 # load configuration
 with open("./../config.json", "r", encoding="utf-8") as file:
@@ -9,7 +9,7 @@ with open("./../config.json", "r", encoding="utf-8") as file:
 
 # create a predictor
 predictor = MXNetPredictor(
-    sagemaker_session=Session(), endpoint_name=config["ENDPOINT"]
+    sagemaker_session=Session(), endpoint_name=config["ENDPOINT_TEST"]
 )
 
 # load local images
@@ -25,7 +25,7 @@ def load_image_from_file(filename):
 
 
 # load local image
-data = load_image_from_file("data/image-2.png")
+data = load_image_from_file("./../data/image-2.png")
 data = data.asnumpy()
 # predict
 print(predictor)

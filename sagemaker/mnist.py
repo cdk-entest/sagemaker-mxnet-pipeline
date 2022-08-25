@@ -1,8 +1,8 @@
 """
-haimtran 
+haimtran
 build train and save model
-sagmaker environment variables such as SM_MODEL_DIR 
-will be copied to s3 
+sagmaker environment variables such as SM_MODEL_DIR
+will be copied to s3
 """
 
 
@@ -29,7 +29,9 @@ def load_data(path):
         images = np.fromstring(fimg.read(), dtype=np.uint8).reshape(
             len(labels), rows, cols
         )
-        images = images.reshape(images.shape[0], 1, 28, 28).astype(np.float32) / 255
+        images = (
+            images.reshape(images.shape[0], 1, 28, 28).astype(np.float32) / 255
+        )
     return labels, images
 
 
@@ -83,7 +85,10 @@ def train(
             break
 
     train_iter = mx.io.NDArrayIter(
-        train_images[start:end], train_labels[start:end], batch_size, shuffle=True
+        train_images[start:end],
+        train_labels[start:end],
+        batch_size,
+        shuffle=True,
     )
     val_iter = mx.io.NDArrayIter(test_images, test_labels, batch_size)
 
@@ -140,9 +145,15 @@ def parse_args():
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--learning-rate", type=float, default=0.1)
 
-    parser.add_argument("--model-dir", type=str, default=os.environ["SM_MODEL_DIR"])
-    parser.add_argument("--train", type=str, default=os.environ["SM_CHANNEL_TRAIN"])
-    parser.add_argument("--test", type=str, default=os.environ["SM_CHANNEL_TEST"])
+    parser.add_argument(
+        "--model-dir", type=str, default=os.environ["SM_MODEL_DIR"]
+    )
+    parser.add_argument(
+        "--train", type=str, default=os.environ["SM_CHANNEL_TRAIN"]
+    )
+    parser.add_argument(
+        "--test", type=str, default=os.environ["SM_CHANNEL_TEST"]
+    )
 
     parser.add_argument(
         "--current-host", type=str, default=os.environ["SM_CURRENT_HOST"]
@@ -164,7 +175,9 @@ def neo_preprocess(payload, content_type):
     logging.info("Invoking user-defined pre-processing function")
 
     if content_type != "application/vnd+python.numpy+binary":
-        raise RuntimeError("Content type must be application/vnd+python.numpy+binary")
+        raise RuntimeError(
+            "Content type must be application/vnd+python.numpy+binary"
+        )
 
     f = io.BytesIO(payload)
     return np.load(f)

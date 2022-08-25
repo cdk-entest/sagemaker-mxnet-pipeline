@@ -49,6 +49,32 @@ def create_model_with_sagemaker():
     # check
     print(resp)
 
+def deploy_model_with_sagemaker():
+    # init a model 
+    model = Model(
+        name="MxNetModelCreatedFromSagMaker",
+        image_uri=config['ECR_IMG_URL'],
+        model_data=config['MODEL_PATH'],
+        role=config['ROLE'],
+        env={
+            "SAGEMAKER_CONTAINER_LOG_LEVEL": "20",
+            "SAGEMAKER_PROGRAM": "mnist.py",
+            "SAGEMAKER_REGION": "us-east-1",
+            "SAGEMAKER_SUBMIT_DIRECTORY": "/opt/ml/model/code",
+        },
+        sagemaker_session=Session()
+    )
+    # create an endpoint 
+    endpoint = model.deploy(
+        initial_instance_count=1, 
+        instance_type="ml.m4.xlarge",
+        serializer=None
+    )
+    # check
+    print(endpoint)
+
+
 
 if __name__=="__main__":
-    create_model_with_sagemaker()
+    # create_model_with_sagemaker()
+    deploy_model_with_sagemaker()

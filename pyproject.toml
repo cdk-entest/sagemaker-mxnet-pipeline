@@ -1,0 +1,15 @@
+[project]
+name = 'mxnet-mnist-lambda'
+description = 'deploy a mxnet nn model using lambda'
+authors = [
+{name = "haimtran"}
+]
+
+[tool.pyright]
+exclude = ["**/node_modules",
+    "**/__pycache__",
+]
+
+[tool.black]
+line-length = 80
+target-version = ['py37']

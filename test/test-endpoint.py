@@ -3,7 +3,16 @@ from sagemaker.mxnet import MXNetPredictor
 from sagemaker.session import Session
 import json
 
+# load configuration
+with open("./../config.json", "r", encoding="utf-8") as file:
+    config = json.load(file)
 
+# create a predictor
+predictor = MXNetPredictor(
+    sagemaker_session=Session(), endpoint_name=config["ENDPOINT"]
+)
+
+# load local images
 def load_image_from_file(filename):
     """
     use open cv to read image
@@ -15,22 +24,10 @@ def load_image_from_file(filename):
     return image
 
 
-with open("config.json", "r", encoding="utf-8") as file:
-    config = json.load(file)
-
-print(f"endpoint-name: {config['endpoint-2']}")
-
-predictor = MXNetPredictor(
-    sagemaker_session=Session(), endpoint_name=config["endpoint-1"]
-)
-
-
+# load local image
 data = load_image_from_file("data/image-2.png")
 data = data.asnumpy()
-# data = list(data)
-print(data)
-
-
+# predict
 print(predictor)
 response = predictor.predict(data=data)
 response = list(zip(range(10), response[0]))

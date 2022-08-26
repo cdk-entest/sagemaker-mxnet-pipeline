@@ -9,6 +9,7 @@ haimtran
 import os
 import boto3
 from sagemaker.mxnet import MXNet
+import tarfile
 
 def update_model_data(fullpath):
     s3 = boto3.resource('s3')

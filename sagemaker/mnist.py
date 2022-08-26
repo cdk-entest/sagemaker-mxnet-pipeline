@@ -1,10 +1,9 @@
 """
 haimtran
-build train and save model
-sagmaker environment variables such as SM_MODEL_DIR
-will be copied to s3
+- use mxnet framework to create and train a model
+- this script can run locally
+- this script can be an entry_point for sagemaker
 """
-
 
 import argparse
 import gzip
@@ -12,10 +11,8 @@ import json
 import logging
 import os
 import struct
-
 import mxnet as mx
 import numpy as np
-
 
 def load_data(path):
     """

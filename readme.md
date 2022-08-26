@@ -1,3 +1,11 @@
+---
+title: Machine Learning Pipeline Part 1
+description: build a ci/cd pipeline for a mxnet model with sagemaker
+author: haimtran
+publishedDate: 08/25/2022
+date: 2022-08-25
+---
+
 ## Introduction
 
 To build, train, and deploy a model, sagemaker offer many solutions for different use cases. For build an traing a model, there are options: a) built-in algorithms, b) script mode - your own training code on aws managed container c) container mode - your own container. Then there are ways to deploy the trained models as sagemaker endpoints[training output](https://docs.aws.amazon.com/sagemaker/latest/dg/your-algorithms-training-algo-output.html).

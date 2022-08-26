@@ -7,9 +7,11 @@ haimtran
 """
 
 import os
+import tarfile
 import boto3
 from sagemaker.mxnet import MXNet
-import tarfile
+
+DEPLOY_BY_SAGEMAKER_PYTHON = False
 
 def update_model_data(fullpath):
     s3 = boto3.resource('s3')
@@ -74,19 +76,20 @@ mnist_estimator = MXNet(
 mnist_estimator.fit(
     {"train": train_data_location, "test": test_data_location}
 )
-# mnist_estimator.deploy(
-#     initial_instance_count=1,
-#     instance_type="ml.m4.xlarge",
-#     serializer=None)
-# get the training output - model path
-print(f"model data: {mnist_estimator.model_data}")
-# compile the model to neo
-update_model_data(mnist_estimator.model_data)
-# write model name to ssm parameter 
-ssm = boto3.client('ssm')
-ssm.put_parameter(
-    Name='ModelDataUrl',
-    Value=mnist_estimator.model_data,
-    Type="String",
-    Overwrite=True,
-)
+# deploy sagemaker endpoint
+if DEPLOY_BY_SAGEMAKER_PYTHON: 
+    mnist_estimator.deploy(
+        initial_instance_count=1,
+        instance_type="ml.m4.xlarge",
+        serializer=None)
+else: 
+    # deploy by cdk stack
+    # compile the model to neo
+    update_model_data(mnist_estimator.model_data)
+    # write model name to ssm parameter
+    ssm = boto3.client('ssm')
+    ssm.put_parameter(
+        Name='ModelDataUrl',
+        Value=mnist_estimator.model_data,
+        Type="String",
+        Overwrite=True)

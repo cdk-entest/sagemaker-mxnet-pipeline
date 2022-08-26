@@ -6,15 +6,10 @@ haimtran
 - optionally sagemaker can deploy a endpoint from this script
 """
 
-import json
+import os
 import boto3
 from sagemaker.mxnet import MXNet
-from sagemaker.session import Session
 
-
-# load config from file or environ variables
-with open("./../config.json", "r", encoding="utf-8") as file:
-    config = json.load(file)
 # training input
 region = boto3.Session().region_name
 train_data_location = (
@@ -24,15 +19,14 @@ test_data_location = (
     f"s3://sagemaker-sample-data-{region}/mxnet/mnist/test"
 )
 # training output
-bucket = Session().default_bucket()
-model_artifacts_location = f"s3://{bucket}/mxnet-mnist-example/code"
+model_artifacts_location = f"s3://{os.environ['BUCKET']}/mxnet-mnist-example/code"
 custom_code_upload_location = (
-    f"s3://{bucket}/mxnet-mnist-example/code"
+    f"s3://{os.environ['BUCKET']}/mxnet-mnist-example/code"
 )
 # aws managed mxnet container
 mnist_estimator = MXNet(
     entry_point="mnist.py",
-    role=config["ROLE"],
+    role=os.environ['SAGEMAKER_ROLE'],
     output_path=model_artifacts_location,
     code_location=custom_code_upload_location,
     instance_count=1,

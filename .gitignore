@@ -6,4 +6,4 @@ data
 **package-lock.json
 **.npmignore
 **jest.config.js 
-**test
+cdk-pipeline/test

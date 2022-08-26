@@ -40,8 +40,8 @@ def update_model_data(fullpath):
     # upload model data to s3
     s3.meta.client.upload_file(
         "model.tar.gz",
-        config["BUCKET"],
-        config["MODEL_PATH_KEY"]
+        bucket,
+        key
     ) 
     return None
 

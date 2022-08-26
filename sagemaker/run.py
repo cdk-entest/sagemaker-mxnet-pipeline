@@ -10,10 +10,8 @@ import json
 import boto3
 from sagemaker.mxnet import MXNet
 from sagemaker.session import Session
-from sagemaker.model import Model
 
-# 
-DEPLOY = False
+
 # load config from file or environ variables
 with open("./../config.json", "r", encoding="utf-8") as file:
     config = json.load(file)
@@ -47,29 +45,10 @@ mnist_estimator = MXNet(
 mnist_estimator.fit(
     {"train": train_data_location, "test": test_data_location}
 )
+# deploy model as an endpoint
+mnist_estimator.deploy(
+    initial_instance_count=1,
+    instance_type="ml.m4.xlarge",
+    serializer=None)
 # get the training output - model path
 print(f"model data: {mnist_estimator.model_data}")
-# ----------------------- move below to cdk stack -------------------------
-if DEPLOY:
-    # create and save the model
-    model = Model(
-        name="MxNetModelCreatedFromSagMaker",
-        image_uri=config['ECR_IMG_URL'],
-        model_data=config['MODEL_PATH'],
-        role=config['ROLE'],
-        env={
-            "SAGEMAKER_CONTAINER_LOG_LEVEL": "20",
-            "SAGEMAKER_PROGRAM": "mnist.py",
-            "SAGEMAKER_REGION": "us-east-1",
-            "SAGEMAKER_SUBMIT_DIRECTORY": "/opt/ml/model/code",
-        },
-        sagemaker_session=Session()
-    )
-    # create the model
-    resp = model.create(
-        instance_type='ml.m4.xlarge')
-    # deploy model as an endpoint
-    mnist_estimator.deploy(
-        initial_instance_count=1,
-        instance_type="ml.m4.xlarge",
-        serializer=None)

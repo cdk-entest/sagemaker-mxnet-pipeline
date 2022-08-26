@@ -62,7 +62,8 @@ def deploy_model_with_sagemaker():
             "SAGEMAKER_REGION": "us-east-1",
             "SAGEMAKER_SUBMIT_DIRECTORY": "/opt/ml/model/code",
         },
-        sagemaker_session=Session()
+        sagemaker_session=Session(),
+        entry_point="mnist.py"
     )
     # create an endpoint 
     endpoint = model.deploy(

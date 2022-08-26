@@ -7,6 +7,9 @@ export class MxnetEndpoint extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+    //
+    const suffix = Date.now().toString();
+
     // execution role
     const role = new cdk.aws_iam.Role(this, "ExecutionRoleMxNetModel", {
       roleName: "ExecutionRoleMxNetModel",
@@ -20,11 +23,18 @@ export class MxnetEndpoint extends cdk.Stack {
         actions: ["sagemaker:*"],
       })
     );
+    role.addToPolicy(
+      new cdk.aws_iam.PolicyStatement({
+        effect: Effect.ALLOW,
+        resources: ["*"],
+        actions: ["s3:*"],
+      })
+    );
 
     // create a model
     const model = new cdk.aws_sagemaker.CfnModel(this, "MxNetModelDemo", {
-      modelName: "MxNetModelDemo",
-      executionRoleArn: role.roleArn,
+      modelName: `MxNetModelDemo-${suffix}`,
+      executionRoleArn: config.ROLE,
       primaryContainer: {
         modelDataUrl: config.MODEL_PATH,
         image: config.ECR_IMG_URL,
@@ -43,7 +53,7 @@ export class MxnetEndpoint extends cdk.Stack {
       this,
       "MxNetModelEndpointConfig",
       {
-        endpointConfigName: "MxnetModelEndpointConfig",
+        endpointConfigName: `MxnetModelEndpointConfig-${suffix}`,
         productionVariants: [
           {
             initialVariantWeight: 1,
@@ -57,9 +67,16 @@ export class MxnetEndpoint extends cdk.Stack {
     );
 
     // deploy a sagemaker endpoint
-    new cdk.aws_sagemaker.CfnEndpoint(this, "MxNetModelEndpointDemo", {
-      endpointName: "MxNetModelEndpointDemo",
-      endpointConfigName: endpointConfig.attrEndpointConfigName,
-    });
+    const endpoint = new cdk.aws_sagemaker.CfnEndpoint(
+      this,
+      "MxNetModelEndpointDemo",
+      {
+        endpointName: `MxNetModelEndpointDemo-${suffix}`,
+        endpointConfigName: endpointConfig.attrEndpointConfigName,
+      }
+    );
+
+    endpointConfig.addDependsOn(model);
+    endpoint.addDependsOn(endpointConfig);
   }
 }

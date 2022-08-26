@@ -9,7 +9,7 @@ with open("./../config.json", "r", encoding="utf-8") as file:
 
 # create a predictor
 predictor = MXNetPredictor(
-    sagemaker_session=Session(), endpoint_name=config["ENDPOINT_TEST"]
+    sagemaker_session=Session(), endpoint_name=config["ENDPOINT"]
 )
 
 # load local images

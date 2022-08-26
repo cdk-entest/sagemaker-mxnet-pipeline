@@ -3,6 +3,7 @@ import json
 import boto3
 from sagemaker.model import Model
 from sagemaker.session import Session
+from sagemaker.mxnet import MXNetModel
 import tarfile
 
 # load config 
@@ -26,7 +27,8 @@ def update_model_data():
         'model-0000.params',
         'model-shapes.json',
         'model-symbol.json',
-        'code/mnist.py']:
+        # 'code/mnist.py'
+        ]:
         tar.add(name)
     tar.close()
     # upload model data to s3
@@ -105,9 +107,29 @@ def deploy_model_with_sagemaker():
     # check
     print(endpoint)
 
+def deploy_mxnet_model():
+    """
+    the deploy method creates a model.tar.gz in s3
+    with code/mnist.py inside it.
+    """
+    model = MXNetModel(
+        model_data=config['MODEL_PATH'],
+        role=config['ROLE'],
+        framework_version="1.4.1",
+        image_uri=config['ECR_IMG_URL'],
+        py_version='py3',
+        entry_point="mnist.py",
+    )
+    endpoint = model.deploy(
+        initial_instance_count=1,
+        instance_type='ml.m4.xlarge'
+    )
+    print(endpoint)
+
 
 
 if __name__=="__main__":
     # create_model_with_sagemaker()
     # deploy_model_with_sagemaker()
-    update_model_data()
+    # update_model_data()
+    deploy_mxnet_model()

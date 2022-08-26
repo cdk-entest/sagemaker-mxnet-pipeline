@@ -40,12 +40,11 @@ def update_model_data(fullpath):
     # upload model data to s3
     s3.meta.client.upload_file(
         "model.tar.gz",
-        config["BUCKET"],
-        config["MODEL_PATH_KEY"]
-    ) 
+        bucket,
+        key)
     return None
 
-
+    
 def create_model_with_boto3():
     # client boto3
     client = boto3.client("sagemaker", region_name="us-east-1")

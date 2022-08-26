@@ -103,11 +103,15 @@ export class PipelineStack extends Stack {
               commands: ["cd cdk-pipeline", "npm install"],
             },
             build: {
-              commands: ["npm run build", "npm run cdk synth -- -o dist"],
+              commands: [
+                "npm run build",
+                "npm run cdk synth -- -o dist",
+                "ls ",
+              ],
             },
           },
           artifacts: {
-            "base-directory": "cdk-pipeline/dist",
+            "base-directory": "dist",
             files: ["*.template.json"],
           },
         }),

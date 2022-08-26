@@ -10,6 +10,13 @@ export class MxnetEndpoint extends cdk.Stack {
     //
     const suffix = Date.now().toString();
 
+    // model name from system parameter store
+    const modelDataUrl = cdk.aws_ssm.StringParameter.fromStringParameterName(
+      this,
+      "ModelDataUrl",
+      "ModelDataUrl"
+    ).stringValue;
+
     // execution role
     const role = new cdk.aws_iam.Role(this, "ExecutionRoleMxNetModel", {
       roleName: "ExecutionRoleMxNetModel",
@@ -35,7 +42,7 @@ export class MxnetEndpoint extends cdk.Stack {
       modelName: `MxNetModelDemo-${suffix}`,
       executionRoleArn: role.roleArn,
       primaryContainer: {
-        modelDataUrl: config.MODEL_PATH,
+        modelDataUrl: modelDataUrl,
         image: config.ECR_IMG_URL,
         mode: "SingleModel",
         environment: {

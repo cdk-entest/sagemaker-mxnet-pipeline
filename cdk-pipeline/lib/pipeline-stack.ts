@@ -62,17 +62,17 @@ export class PipelineStack extends Stack {
     // codebuild upload training code to s3 for sagemaker
     sageMakerBuild.addToRolePolicy(
       new aws_iam.PolicyStatement({
-        effect: Effect.ALLOW,
+        effect: aws_iam.Effect.ALLOW,
         resources: ["*"],
-        actions: ["s3:*"],
-      })
-    );
-
-    sageMakerBuild.addToRolePolicy(
-      new aws_iam.PolicyStatement({
-        effect: Effect.ALLOW,
-        resources: ["*"],
-        actions: ["sagemaker:*"],
+        actions: [
+          "sagemaker:*",
+          "s3:*",
+          "lambda:*",
+          "iam:GetRole",
+          "iam:PassRole",
+          "states:*",
+          "logs:*",
+        ],
       })
     );
 
@@ -112,6 +112,15 @@ export class PipelineStack extends Stack {
           },
         }),
       }
+    );
+
+    // get system parameter store
+    cdkBuildProject.addToRolePolicy(
+      new aws_iam.PolicyStatement({
+        effect: Effect.ALLOW,
+        resources: ["*"],
+        actions: ["ssm:*"],
+      })
     );
 
     // code piepline

@@ -39,17 +39,17 @@ mnist_estimator = MXNet(
 mnist_estimator.fit(
     {"train": train_data_location, "test": test_data_location}
 )
-# deploy model as an endpoint
 # mnist_estimator.deploy(
 #     initial_instance_count=1,
 #     instance_type="ml.m4.xlarge",
 #     serializer=None)
 # get the training output - model path
 print(f"model data: {mnist_estimator.model_data}")
-
 # write model name to ssm parameter 
 ssm = boto3.client('ssm')
 ssm.put_parameter(
-    Name='MxnetModelName',
-    Value=mnist_estimator.model_data
+    Name='ModelDataUrl',
+    Value=mnist_estimator.model_data,
+    Type="String",
+    Overwrite=True,
 )

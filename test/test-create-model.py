@@ -1,10 +1,10 @@
 import os 
+import tarfile
 import json
 import boto3
 from sagemaker.model import Model
 from sagemaker.session import Session
 from sagemaker.mxnet import MXNetModel
-import tarfile
 
 # load config 
 with open("./../config.json", "r", encoding="utf-8") as file:
@@ -37,13 +37,13 @@ def update_model_data():
         config["BUCKET"],
         config["MODEL_PATH_KEY"]
     ) 
-    return None 
+    return None
 
 
 def create_model_with_boto3():
-    # client boto3 
+    # client boto3
     client = boto3.client("sagemaker", region_name="us-east-1")
-    # create a model 
+    # create a model
     resp = client.create_model(
         ModelName="MyMxNetDemo",
         PrimaryContainer={
@@ -61,28 +61,10 @@ def create_model_with_boto3():
     )
     print(resp)
 
-def create_model_with_sagemaker():
-    # init a model 
-    model = Model(
-        name="MxNetModelCreatedFromSagMaker",
-        image_uri=config['ECR_IMG_URL'],
-        model_data=config['MODEL_PATH'],
-        role=config['ROLE'],
-        env={
-            "SAGEMAKER_CONTAINER_LOG_LEVEL": "20",
-            "SAGEMAKER_PROGRAM": "mnist.py",
-            "SAGEMAKER_REGION": "us-east-1",
-            "SAGEMAKER_SUBMIT_DIRECTORY": "/opt/ml/model/code",
-        },
-        sagemaker_session=Session()
-    )
-    # create the model 
-    resp = model.create(
-        instance_type='ml.m4.xlarge')
-    # check
-    print(resp)
 
 def deploy_model_with_sagemaker():
+    # complied model.tar.gz 
+    update_model_data()
     # init a model 
     model = Model(
         name="MxNetModelCreatedFromSagMaker",
@@ -98,7 +80,7 @@ def deploy_model_with_sagemaker():
         sagemaker_session=Session(),
         entry_point="mnist.py"
     )
-    # create an endpoint 
+    # create an endpoint
     endpoint = model.deploy(
         initial_instance_count=1, 
         instance_type="ml.m4.xlarge",
@@ -106,6 +88,7 @@ def deploy_model_with_sagemaker():
     )
     # check
     print(endpoint)
+
 
 def deploy_mxnet_model():
     """
@@ -125,7 +108,6 @@ def deploy_mxnet_model():
         instance_type='ml.m4.xlarge'
     )
     print(endpoint)
-
 
 
 if __name__=="__main__":

@@ -10,6 +10,10 @@ sagemaker variables and training outputs
 
 [training output](https://docs.aws.amazon.com/sagemaker/latest/dg/your-algorithms-training-algo-output.html)
 
+
+![mlpipeline-part-1](https://user-images.githubusercontent.com/20411077/186935143-4b41e8da-e242-4e05-836a-8dc2d256d4ca.png)
+
+
 ## Script mode
 
 - aws provide container per framework such as tensorflow, pytouch, mxnet

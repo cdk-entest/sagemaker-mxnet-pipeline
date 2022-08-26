@@ -109,7 +109,7 @@ estimator.fit and training will package a model.targ.gz
 model
     |--model-0000.params
     |--model-shapes.json
-    |--model-symbol.json`
+    |--model-symbol.json
 ```
 
 ## Reference
@@ -122,3 +122,4 @@ model
 - [aws image list](https://docs.aws.amazon.com/sagemaker/latest/dg/neo-deployment-hosting-services-container-images.html)
 - [pre-trained mxnet](https://aws.amazon.com/blogs/machine-learning/bring-your-own-pre-trained-mxnet-or-tensorflow-models-into-amazon-sagemaker/)
 - [troubleshoot](https://docs.aws.amazon.com/sagemaker/latest/dg/neo-troubleshooting-inference.html)
+- [tar.gz model complied](https://docs.aws.amazon.com/sagemaker/latest/dg/neo-compilation-preparing-model.html)

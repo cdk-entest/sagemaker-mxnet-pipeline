@@ -46,9 +46,9 @@ mnist_estimator.fit(
     {"train": train_data_location, "test": test_data_location}
 )
 # deploy model as an endpoint
-mnist_estimator.deploy(
-    initial_instance_count=1,
-    instance_type="ml.m4.xlarge",
-    serializer=None)
+# mnist_estimator.deploy(
+#     initial_instance_count=1,
+#     instance_type="ml.m4.xlarge",
+#     serializer=None)
 # get the training output - model path
 print(f"model data: {mnist_estimator.model_data}")

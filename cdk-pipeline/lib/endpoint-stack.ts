@@ -1,7 +1,7 @@
 import * as cdk from "aws-cdk-lib";
 import { Effect } from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
-import config from "./../../config.json";
+import config from "../../config.json";
 
 export class MxnetEndpoint extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -16,13 +16,12 @@ export class MxnetEndpoint extends cdk.Stack {
       assumedBy: new cdk.aws_iam.ServicePrincipal("sagemaker.amazonaws.com"),
     });
 
-    role.addToPolicy(
-      new cdk.aws_iam.PolicyStatement({
-        effect: Effect.ALLOW,
-        resources: ["*"],
-        actions: ["sagemaker:*"],
-      })
+    role.addManagedPolicy(
+      cdk.aws_iam.ManagedPolicy.fromAwsManagedPolicyName(
+        "AmazonSageMakerFullAccess"
+      )
     );
+
     role.addToPolicy(
       new cdk.aws_iam.PolicyStatement({
         effect: Effect.ALLOW,
@@ -34,7 +33,7 @@ export class MxnetEndpoint extends cdk.Stack {
     // create a model
     const model = new cdk.aws_sagemaker.CfnModel(this, "MxNetModelDemo", {
       modelName: `MxNetModelDemo-${suffix}`,
-      executionRoleArn: config.ROLE,
+      executionRoleArn: role.roleArn,
       primaryContainer: {
         modelDataUrl: config.MODEL_PATH,
         image: config.ECR_IMG_URL,

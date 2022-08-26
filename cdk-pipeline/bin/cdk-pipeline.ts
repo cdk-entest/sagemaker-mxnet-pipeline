@@ -7,13 +7,11 @@ const app = new cdk.App();
 
 // pipeline
 new PipelineStack(app, "PipelineStack", {
-  codeStarArn:
-    "arn:aws:codestar-connections:us-east-1:305047569515:connection/475216ac-d91d-40c7-827d-c0da1c714f10",
+  codeStarArn: `arn:aws:codestar-connections:${process.env.CDK_DEFAULT_REGION}:${process.env.CDK_DEFAULT_ACCOUNT}:connection/475216ac-d91d-40c7-827d-c0da1c714f10`,
   //
-  sageMakerRole:
-    "arn:aws:iam::305047569515:role/service-role/AmazonSageMaker-ExecutionRole-20220818T095999",
+  sageMakerRole: `arn:aws:iam::${process.env.CDK_DEFAULT_REGION}:role/service-role/AmazonSageMaker-ExecutionRole-20220818T095999`,
   // sagemaker bucket
-  bucketName: "sagemaker-us-east-1-305047569515",
+  bucketName: `sagemaker-${process.env.CDK_DEFAULT_REGION}-${process.env.CDK_DEFAULT_ACCOUNT}`,
 });
 
 // mxnet endpoint

@@ -1,7 +1,10 @@
 import * as cdk from "aws-cdk-lib";
 import { Effect } from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
-import config from "../../config.json";
+
+// aws public avaiable
+const imageUrl =
+  "763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.4.1-cpu-py3";
 
 export class MxnetEndpoint extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -43,7 +46,7 @@ export class MxnetEndpoint extends cdk.Stack {
       executionRoleArn: role.roleArn,
       primaryContainer: {
         modelDataUrl: modelDataUrl,
-        image: config.ECR_IMG_URL,
+        image: imageUrl,
         mode: "SingleModel",
         environment: {
           SAGEMAKER_CONTAINER_LOG_LEVEL: "20",

@@ -100,7 +100,7 @@ export class PipelineStack extends Stack {
           version: "0.2",
           phases: {
             install: {
-              commands: ["cdk cdk-pipeline", "npm install"],
+              commands: ["cd cdk-pipeline", "npm install"],
             },
             build: {
               commands: ["npm run build", "npm run cdk synth -- -o dist"],

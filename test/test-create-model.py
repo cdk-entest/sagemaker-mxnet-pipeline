@@ -11,12 +11,18 @@ with open("./../config.json", "r", encoding="utf-8") as file:
     config = json.load(file)
 
 # update model data
-def update_model_data():
+def update_model_data(fullpath):
     s3 = boto3.resource('s3')
+    # split full path 
+    paths = fullpath.split("/")
+    # get bucket name 
+    bucket = paths[2]
+    # get key name 
+    key = "/".join(paths[3:]) 
     # download model data from s3
     s3.meta.client.download_file(
-        config['BUCKET'],
-        config["MODEL_PATH_KEY"],
+        bucket,
+        key,
         "model.tar.gz"
     )
     # extract data
@@ -64,7 +70,7 @@ def create_model_with_boto3():
 
 def deploy_model_with_sagemaker():
     # complied model.tar.gz 
-    update_model_data()
+    update_model_data(config['MODEL_PATh'])
     # init a model 
     model = Model(
         name="MxNetModelCreatedFromSagMaker",
@@ -113,5 +119,5 @@ def deploy_mxnet_model():
 if __name__=="__main__":
     # create_model_with_sagemaker()
     # deploy_model_with_sagemaker()
-    # update_model_data()
-    deploy_mxnet_model()
+    update_model_data(fullpath=config['MODEL_PATH'])
+    # deploy_mxnet_model()

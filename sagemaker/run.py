@@ -71,22 +71,22 @@ mnist_estimator = MXNet(
     hyperparameters={"learning-rate": 0.1},
 )
 # train in sagemaker - model params will be saved to S3
-# mnist_estimator.fit(
-#     {"train": train_data_location, "test": test_data_location}
-# )
-# # mnist_estimator.deploy(
-# #     initial_instance_count=1,
-# #     instance_type="ml.m4.xlarge",
-# #     serializer=None)
-# # get the training output - model path
-# print(f"model data: {mnist_estimator.model_data}")
-# # compile the model to neo
-# update_model_data(mnist_estimator.model_data)
-# # write model name to ssm parameter 
-# ssm = boto3.client('ssm')
-# ssm.put_parameter(
-#     Name='ModelDataUrl',
-#     Value=mnist_estimator.model_data,
-#     Type="String",
-#     Overwrite=True,
-# )
+mnist_estimator.fit(
+    {"train": train_data_location, "test": test_data_location}
+)
+# mnist_estimator.deploy(
+#     initial_instance_count=1,
+#     instance_type="ml.m4.xlarge",
+#     serializer=None)
+# get the training output - model path
+print(f"model data: {mnist_estimator.model_data}")
+# compile the model to neo
+update_model_data(mnist_estimator.model_data)
+# write model name to ssm parameter 
+ssm = boto3.client('ssm')
+ssm.put_parameter(
+    Name='ModelDataUrl',
+    Value=mnist_estimator.model_data,
+    Type="String",
+    Overwrite=True,
+)

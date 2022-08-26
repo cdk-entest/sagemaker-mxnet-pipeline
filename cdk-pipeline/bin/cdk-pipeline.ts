@@ -2,17 +2,18 @@
 import * as cdk from "aws-cdk-lib";
 import { MxnetEndpoint } from "../lib/endpoint-stack";
 import { PipelineStack } from "../lib/pipeline-stack";
-import config from "./../../config.json";
 
 const app = new cdk.App();
 
 // pipeline
 new PipelineStack(app, "PipelineStack", {
-  codeStarArn: config.CODE_STAR_ARN,
+  codeStarArn:
+    "arn:aws:codestar-connections:us-east-1:305047569515:connection/475216ac-d91d-40c7-827d-c0da1c714f10",
   //
-  sageMakerRole: config.ROLE,
+  sageMakerRole:
+    "arn:aws:iam::305047569515:role/service-role/AmazonSageMaker-ExecutionRole-20220818T095999",
   // sagemaker bucket
-  bucketName: config.BUCKET,
+  bucketName: "sagemaker-us-east-1-305047569515",
 });
 
 // mxnet endpoint

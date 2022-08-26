@@ -111,7 +111,7 @@ export class PipelineStack extends Stack {
             },
           },
           artifacts: {
-            "base-directory": "dist",
+            "base-directory": "cdk-pipeline/dist",
             files: ["*.template.json"],
           },
         }),

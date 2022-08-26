@@ -43,6 +43,8 @@ export class MxnetEndpoint extends cdk.Stack {
     // create a model
     const model = new cdk.aws_sagemaker.CfnModel(this, "MxNetModelDemo", {
       modelName: `MxNetModelDemo-${suffix}`,
+      // passRole should be in the caller this api
+      // sagemaker assume this role to access model artifacts, ecr.
       executionRoleArn: role.roleArn,
       primaryContainer: {
         modelDataUrl: modelDataUrl,

@@ -4,10 +4,9 @@ To build, train, and deploy a model, sagemaker offer many solutions for differen
 
 [GitHub](https://github.com/entest-hai/sagemaker-mxnet-pipeline) this post
 
-- train a model with my own script and using MXnet framework locally
-- train the model with my own script but in sagemaker
+- train a mxnet model with my own script with sagemaker (sagemaker sdk python)
 - deploy the model as a sagemaker endpoint
-- build a ci/cd pipeline
+- build a ci/cd pipeline in cdk
 
 ![mlpipeline-part-1](https://user-images.githubusercontent.com/20411077/186935143-4b41e8da-e242-4e05-836a-8dc2d256d4ca.png)
 

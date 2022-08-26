@@ -3,7 +3,7 @@
 data
 **node_modules
 **__pycache__
-**package-lock.json
+package-lock.json
 **.npmignore
 **jest.config.js 
 cdk-pipeline/test

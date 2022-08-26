@@ -179,7 +179,7 @@ export class PipelineStack extends Stack {
               actionName: "DeployMxNetEndpoint",
               stackName: "MxnetEndpoint",
               templatePath: cdkBuildOutput.atPath(
-                "MxnetEndpoint.template.json"
+                "MxNetEndpoint.template.json"
               ),
               adminPermissions: true,
             }),

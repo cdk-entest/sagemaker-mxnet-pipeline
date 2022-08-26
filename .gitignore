@@ -1,0 +1,13 @@
+.vscode 
+**config.json
+data
+**node_modules
+**__pycache__
+**package-lock.json
+**.npmignore
+**jest.config.js 
+cdk-pipeline/test
+**model-0000.params
+**model-shapes.json
+**model-symbol.json 
+**model.tar.gz 

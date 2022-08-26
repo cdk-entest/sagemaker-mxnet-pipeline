@@ -112,6 +112,285 @@ model
     |--model-symbol.json
 ```
 
+## SageMaker Endpoint Stack
+
+modelDataUrl stored in system parameter store
+
+```tsx
+const modelDataUrl = cdk.aws_ssm.StringParameter.fromStringParameterName(
+  this,
+  "ModelDataUrl",
+  "ModelDataUrl"
+).stringValue;
+```
+
+execution role for the model
+
+```tsx
+// execution role
+const role = new cdk.aws_iam.Role(this, "ExecutionRoleMxNetModel", {
+  roleName: "ExecutionRoleMxNetModel",
+  assumedBy: new cdk.aws_iam.ServicePrincipal("sagemaker.amazonaws.com"),
+});
+
+role.addManagedPolicy(
+  cdk.aws_iam.ManagedPolicy.fromAwsManagedPolicyName(
+    "AmazonSageMakerFullAccess"
+  )
+);
+
+role.addToPolicy(
+  new cdk.aws_iam.PolicyStatement({
+    effect: Effect.ALLOW,
+    resources: ["*"],
+    actions: ["s3:*"],
+  })
+);
+```
+
+create a model mxnet
+
+```tsx
+const model = new cdk.aws_sagemaker.CfnModel(this, "MxNetModelDemo", {
+  modelName: `MxNetModelDemo-${suffix}`,
+  // passRole should be in the caller this api
+  // sagemaker assume this role to access model artifacts, ecr.
+  executionRoleArn: role.roleArn,
+  primaryContainer: {
+    modelDataUrl: modelDataUrl,
+    image: imageUrl,
+    mode: "SingleModel",
+    environment: {
+      SAGEMAKER_CONTAINER_LOG_LEVEL: "20",
+      SAGEMAKER_PROGRAM: "mnist.py",
+      SAGEMAKER_REGION: "us-east-1",
+      SAGEMAKER_SUBMIT_DIRECTORY: "/opt/ml/model/code",
+    },
+  },
+});
+```
+
+create endpont configuration
+
+```tsx
+const endpointConfig = new cdk.aws_sagemaker.CfnEndpointConfig(
+  this,
+  "MxNetModelEndpointConfig",
+  {
+    endpointConfigName: `MxnetModelEndpointConfig-${suffix}`,
+    productionVariants: [
+      {
+        initialVariantWeight: 1,
+        initialInstanceCount: 1,
+        instanceType: "ml.m4.xlarge",
+        modelName: model.modelName?.toString()!,
+        variantName: model.modelName?.toString()!,
+      },
+    ],
+  }
+);
+```
+
+create an endpoint
+
+```tsx
+const endpoint = new cdk.aws_sagemaker.CfnEndpoint(
+  this,
+  "MxNetModelEndpointDemo",
+  {
+    endpointName: `MxNetModelEndpointDemo-${suffix}`,
+    endpointConfigName: endpointConfig.attrEndpointConfigName,
+  }
+);
+
+endpointConfig.addDependsOn(model);
+endpoint.addDependsOn(endpointConfig);
+```
+
+## Pipeline Stack
+
+artifacts
+
+```tsx
+// artifact
+const sourceOutput = new aws_codepipeline.Artifact("SourceOutput");
+const sagemakerBuildOutput = new aws_codepipeline.Artifact(
+  "SageMakerBuildOutput"
+);
+const cdkBuildOutput = new aws_codepipeline.Artifact("CdkBuildOutput");
+```
+
+codebuild build sagemaker model
+
+```tsx
+const sageMakerBuild = new aws_codebuild.PipelineProject(
+  this,
+  "SageMakerCodeBuild",
+  {
+    projectName: "BuildMxNetModel",
+    environment: {
+      privileged: true,
+      buildImage: aws_codebuild.LinuxBuildImage.STANDARD_5_0,
+      computeType: aws_codebuild.ComputeType.MEDIUM,
+      environmentVariables: {
+        SAGEMAKER_ROLE: {
+          value: props.sageMakerRole,
+        },
+        BUCKET: {
+          value: props.bucketName,
+        },
+      },
+    },
+    buildSpec: aws_codebuild.BuildSpec.fromObject({
+      version: "0.2",
+      phases: {
+        install: {
+          commands: ["pip install -r requirements.txt"],
+        },
+        build: {
+          commands: ["cd sagemaker", "python run.py"],
+        },
+      },
+    }),
+  }
+);
+```
+
+codebuild need to access s3
+
+```tsx
+sageMakerBuild.addToRolePolicy(
+  new aws_iam.PolicyStatement({
+    effect: aws_iam.Effect.ALLOW,
+    resources: ["*"],
+    actions: [
+      "sagemaker:*",
+      "s3:*",
+      "lambda:*",
+      "iam:GetRole",
+      "iam:PassRole",
+      "states:*",
+      "logs:*",
+    ],
+  })
+);
+
+sageMakerBuild.addToRolePolicy(
+  new aws_iam.PolicyStatement({
+    effect: Effect.ALLOW,
+    resources: ["*"],
+    actions: ["ssm:*"],
+  })
+);
+```
+
+codebuild build cdk stack
+
+```tsx
+const cdkBuildProject = new aws_codebuild.PipelineProject(
+  this,
+  "CdkBuildProject",
+  {
+    projectName: "BuildCdkStack",
+    environment: {
+      privileged: true,
+      buildImage: aws_codebuild.LinuxBuildImage.STANDARD_5_0,
+      computeType: aws_codebuild.ComputeType.MEDIUM,
+      environmentVariables: {},
+    },
+    buildSpec: aws_codebuild.BuildSpec.fromObject({
+      version: "0.2",
+      phases: {
+        install: {
+          commands: ["cd cdk-pipeline", "npm install"],
+        },
+        build: {
+          commands: ["npm run build", "npm run cdk synth -- -o dist", "ls "],
+        },
+      },
+      artifacts: {
+        "base-directory": "cdk-pipeline/dist",
+        files: ["*.template.json"],
+      },
+    }),
+  }
+);
+```
+
+codebuild needs to access ssm to get the model name
+
+```tsx
+cdkBuildProject.addToRolePolicy(
+  new aws_iam.PolicyStatement({
+    effect: Effect.ALLOW,
+    resources: ["*"],
+    actions: ["ssm:*"],
+  })
+);
+```
+
+pipeline
+
+```tsx
+const pipeline = new aws_codepipeline.Pipeline(this, "MxNetCodePipeline", {
+  pipelineName: "MxnNetCodePipeline",
+  stages: [
+    // source
+    {
+      stageName: "SourceStage",
+      actions: [
+        new aws_codepipeline_actions.CodeStarConnectionsSourceAction({
+          actionName: "GitHub",
+          owner: "entest-hai",
+          repo: "sagemaker-sdk",
+          branch: "main",
+          connectionArn: props.codeStarArn,
+          output: sourceOutput,
+        }),
+      ],
+    },
+    // build model using sagemaker
+    {
+      stageName: "BuildModel",
+      actions: [
+        new aws_codepipeline_actions.CodeBuildAction({
+          actionName: "BuildModel",
+          project: sageMakerBuild,
+          input: sourceOutput,
+          outputs: [sagemakerBuildOutput],
+          runOrder: 1,
+        }),
+      ],
+    },
+    // build cdk stack
+    {
+      stageName: "BuildCdkStack",
+      actions: [
+        new aws_codepipeline_actions.CodeBuildAction({
+          actionName: "BuildCdkStack",
+          project: cdkBuildProject,
+          input: sourceOutput,
+          outputs: [cdkBuildOutput],
+          runOrder: 2,
+        }),
+      ],
+    },
+    // deploy mxnet model stack
+    {
+      stageName: "DeployMxNetEndpoint",
+      actions: [
+        new aws_codepipeline_actions.CloudFormationCreateUpdateStackAction({
+          actionName: "DeployMxNetEndpoint",
+          stackName: "MxnetEndpoint",
+          templatePath: cdkBuildOutput.atPath("MxNetEndpoint.template.json"),
+          adminPermissions: true,
+        }),
+      ],
+    },
+  ],
+});
+```
+
 ## Reference
 
 - [amazon sagemaker example](https://github.com/aws/amazon-sagemaker-examples/blob/main/sagemaker-python-sdk/mxnet_mnist/mnist.py)

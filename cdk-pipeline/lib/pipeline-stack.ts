@@ -2,14 +2,17 @@ import {
   aws_codebuild,
   aws_codepipeline,
   aws_codepipeline_actions,
+  aws_iam,
   Stack,
   StackProps,
 } from "aws-cdk-lib";
+import { Effect } from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
 
 interface PipelineProps extends StackProps {
   codeStarArn: string;
   sageMakerRole: string;
+  bucketName: string;
 }
 
 export class PipelineStack extends Stack {
@@ -21,6 +24,7 @@ export class PipelineStack extends Stack {
     const sagemakerBuildOutput = new aws_codepipeline.Artifact(
       "SageMakerBuildOutput"
     );
+    const cdkBuildOutput = new aws_codepipeline.Artifact("CdkBuildOutput");
 
     // codebuild build sagemaker model
     const sageMakerBuild = new aws_codebuild.PipelineProject(
@@ -36,17 +40,75 @@ export class PipelineStack extends Stack {
             SAGEMAKER_ROLE: {
               value: props.sageMakerRole,
             },
+            BUCKET: {
+              value: props.bucketName,
+            },
           },
         },
         buildSpec: aws_codebuild.BuildSpec.fromObject({
           version: "0.2",
           phases: {
             install: {
-              comands: ["pip install -r requirements.txt"],
+              commands: ["pip install -r requirements.txt"],
             },
             build: {
               commands: ["cd sagemaker", "python run.py"],
             },
+          },
+        }),
+      }
+    );
+
+    // codebuild upload training code to s3 for sagemaker
+    sageMakerBuild.addToRolePolicy(
+      new aws_iam.PolicyStatement({
+        effect: Effect.ALLOW,
+        resources: ["*"],
+        actions: ["s3:*"],
+      })
+    );
+
+    sageMakerBuild.addToRolePolicy(
+      new aws_iam.PolicyStatement({
+        effect: Effect.ALLOW,
+        resources: ["*"],
+        actions: ["sagemaker:*"],
+      })
+    );
+
+    // codebuild write model name to ssm parameter
+    sageMakerBuild.addToRolePolicy(
+      new aws_iam.PolicyStatement({
+        effect: Effect.ALLOW,
+        resources: ["*"],
+        actions: ["ssm:*"],
+      })
+    );
+
+    const cdkBuildProject = new aws_codebuild.PipelineProject(
+      this,
+      "CdkBuildProject",
+      {
+        projectName: "BuildCdkStack",
+        environment: {
+          privileged: true,
+          buildImage: aws_codebuild.LinuxBuildImage.STANDARD_5_0,
+          computeType: aws_codebuild.ComputeType.MEDIUM,
+          environmentVariables: {},
+        },
+        buildSpec: aws_codebuild.BuildSpec.fromObject({
+          version: "0.2",
+          phases: {
+            install: {
+              commands: ["cdk cdk-pipeline", "npm install"],
+            },
+            build: {
+              commands: ["npm run build", "npm run cdk synth -- -o dist"],
+            },
+          },
+          artifacts: {
+            "base-directory": "cdk-pipeline/dist",
+            files: ["*.template.json"],
           },
         }),
       }
@@ -70,7 +132,7 @@ export class PipelineStack extends Stack {
             }),
           ],
         },
-        // codebuild to build model using sagemaker
+        // build model using sagemaker
         {
           stageName: "BuildModel",
           actions: [
@@ -83,8 +145,33 @@ export class PipelineStack extends Stack {
             }),
           ],
         },
-
-        // deploy endpoint
+        // build cdk stack
+        {
+          stageName: "BuildCdkStack",
+          actions: [
+            new aws_codepipeline_actions.CodeBuildAction({
+              actionName: "BuildCdkStack",
+              project: cdkBuildProject,
+              input: sourceOutput,
+              outputs: [cdkBuildOutput],
+              runOrder: 2,
+            }),
+          ],
+        },
+        // deploy mxnet model stack
+        {
+          stageName: "DeployMxNetEndpoint",
+          actions: [
+            new aws_codepipeline_actions.CloudFormationCreateUpdateStackAction({
+              actionName: "DeployMxNetEndpoint",
+              stackName: "MxnetEndpoint",
+              templatePath: cdkBuildOutput.atPath(
+                "MxnetEndpoint.template.json"
+              ),
+              adminPermissions: true,
+            }),
+          ],
+        },
       ],
     });
   }

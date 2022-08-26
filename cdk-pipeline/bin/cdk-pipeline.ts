@@ -9,7 +9,10 @@ const app = new cdk.App();
 // pipeline
 new PipelineStack(app, "PipelineStack", {
   codeStarArn: config.CODE_STAR_ARN,
+  //
   sageMakerRole: config.ROLE,
+  // sagemaker bucket
+  bucketName: config.BUCKET,
 });
 
 // mxnet endpoint

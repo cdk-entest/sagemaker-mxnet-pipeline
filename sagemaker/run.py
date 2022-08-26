@@ -46,3 +46,10 @@ mnist_estimator.fit(
 #     serializer=None)
 # get the training output - model path
 print(f"model data: {mnist_estimator.model_data}")
+
+# write model name to ssm parameter 
+ssm = boto3.client('ssm')
+ssm.put_parameter(
+    Name='MxnetModelName',
+    Value=mnist_estimator.model_data
+)

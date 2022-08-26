@@ -1,3 +1,4 @@
+sagemaker==2.99.0
 mxnet==1.6.0
 numpy==1.19.5
 certifi==2020.6.20

@@ -35,7 +35,7 @@ def update_model_data(fullpath):
         'model-0000.params',
         'model-shapes.json',
         'model-symbol.json',
-        # 'code/mnist.py'
+        'code/mnist.py'
         ]:
         tar.add(name)
     tar.close()
@@ -77,12 +77,12 @@ mnist_estimator.fit(
     {"train": train_data_location, "test": test_data_location}
 )
 # deploy sagemaker endpoint
-if DEPLOY_BY_SAGEMAKER_PYTHON: 
+if DEPLOY_BY_SAGEMAKER_PYTHON:
     mnist_estimator.deploy(
         initial_instance_count=1,
         instance_type="ml.m4.xlarge",
         serializer=None)
-else: 
+else:
     # deploy by cdk stack
     # compile the model to neo
     update_model_data(mnist_estimator.model_data)
